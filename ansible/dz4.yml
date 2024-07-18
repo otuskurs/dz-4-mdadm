@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+  - name: Собираем RAID
+    ansible.builtin.command: "mdadm --create /dev/md0 -l 10 -n 2 /dev/sdb /dev/sdc"
+  - name: Создаем файловую систему
+    ansible.builtin.command: "mkfs.ext4 /dev/md0"
+  - name: Создаем директорию для монтирования
+    ansible.builtin.command: "mkdir /mnt/BACKUP"
+  - name: Монтируем 
+    ansible.builtin.command: "mount /dev/md0 /mnt/BACKUP"
+  - name: создадим файл mdadm.conf
+    ansible.builtin.shell: |
+      echo "DEVICE partitions" >> /etc/mdadm/mdadm.conf
+      mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
+...
